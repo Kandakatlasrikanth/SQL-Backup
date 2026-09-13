@@ -8,20 +8,55 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check Ansible
+      - name: Check Windows environment
         shell: powershell
         run: |
-          wsl ansible --version
+          Write-Host "Windows user:"
+          whoami
 
-      - name: Check inventory
-        shell: powershell
-        run: |
-          wsl bash -lc "cd /mnt/c/Users/ADMINISTRATOR/_work/SQL-Backup/SQL-Backup && ansible-inventory -i ansible/inventory.ini --graph"
+          Write-Host "Current directory:"
+          Get-Location
 
-      - name: Run Ola Hallengren backup
+          Write-Host "GitHub workspace:"
+          Write-Host "${{ github.workspace }}"
+
+      - name: Check WSL
         shell: powershell
         run: |
-          wsl bash -lc "cd /mnt/c/Users/ADMINISTRATOR/_work/SQL-Backup/SQL-Backup && ansible-playbook -i ansible/inventory.ini ansible/ola-backup.yml"
+          wsl --status
+          wsl --list --verbose
+
+      - name: Check Ansible in WSL
+        shell: powershell
+        run: |
+          wsl bash -lc "whoami"
+          wsl bash -lc "ansible --version"
+
+      - name: Check repository from WSL
+        shell: powershell
+        run: |
+          $wslPath = wsl wslpath '${{ github.workspace }}'
+          Write-Host "WSL path: $wslPath"
+          wsl bash -lc "ls -la '$wslPath'"
+          wsl bash -lc "ls -la '$wslPath/ansible'"
+
+      - name: Check Ansible inventory
+        shell: powershell
+        run: |
+          $wslPath = wsl wslpath '${{ github.workspace }}'
+          wsl bash -lc "cd '$wslPath' && ansible-inventory -i ansible/inventory.ini --graph"
+
+      - name: Test Ansible connectivity
+        shell: powershell
+        run: |
+          $wslPath = wsl wslpath '${{ github.workspace }}'
+          wsl bash -lc "cd '$wslPath' && ansible -i ansible/inventory.ini windows -m ansible.windows.win_ping"
+
+      - name: Run Ola backup
+        shell: powershell
+        run: |
+          $wslPath = wsl wslpath '${{ github.workspace }}'
+          wsl bash -lc "cd '$wslPath' && ansible-playbook -i ansible/inventory.ini ansible/ola-backup.yml"
