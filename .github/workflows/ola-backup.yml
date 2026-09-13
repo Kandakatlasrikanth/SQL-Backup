@@ -5,52 +5,35 @@ on:
 
 jobs:
   ola-backup:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Check Windows user
-        shell: powershell
+      - name: Install Ansible
         run: |
-          whoami
-          Get-Location
+          sudo apt-get update
+          sudo apt-get install -y ansible
 
-      - name: Check WSL
-        shell: powershell
+      - name: Install Windows Ansible collection
         run: |
-          wsl --status
-          wsl --list --verbose
+          ansible-galaxy collection install ansible.windows
 
       - name: Check Ansible
-        shell: powershell
         run: |
-          wsl bash -lc "ansible --version"
+          ansible --version
 
-      - name: Check repository in WSL
-        shell: powershell
+      - name: Check inventory
         run: |
-          $wslPath = wsl wslpath '${{ github.workspace }}'
-          Write-Host "WSL Path: $wslPath"
-          wsl bash -lc "ls -la '$wslPath'"
-          wsl bash -lc "ls -la '$wslPath/ansible'"
-
-      - name: Check Ansible inventory
-        shell: powershell
-        run: |
-          $wslPath = wsl wslpath '${{ github.workspace }}'
-          wsl bash -lc "cd '$wslPath' && ansible-inventory -i ansible/inventory.ini --graph"
+          ansible-inventory -i ansible/inventory.ini --graph
 
       - name: Test Windows connectivity
-        shell: powershell
         run: |
-          $wslPath = wsl wslpath '${{ github.workspace }}'
-          wsl bash -lc "cd '$wslPath' && ansible -i ansible/inventory.ini windows -m ansible.windows.win_ping"
+          ansible -i ansible/inventory.ini windows -m ansible.windows.win_ping
 
       - name: Run Ola Hallengren backup
-        shell: powershell
         run: |
-          $wslPath = wsl wslpath '${{ github.workspace }}'
-          wsl bash -lc "cd '$wslPath' && ansible-playbook -i ansible/inventory.ini ansible/ola-backup.yml"
+          ansible-playbook \
+            -i ansible/inventory.ini \
+            ansible/ola-backup.yml
