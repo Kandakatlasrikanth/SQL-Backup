@@ -1,4 +1,4 @@
-name: Ola Hallengren Backup
+name: Ola Hallengren FUll_Backup
 on:
   workflow_dispatch:
   
