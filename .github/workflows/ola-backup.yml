@@ -11,29 +11,41 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Ansible
+      - name: Install Ansible and WinRM
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ansible
+          python3 -m venv .venv
+          . .venv/bin/activate
+          pip install --upgrade pip
+          pip install ansible pywinrm requests-ntlm
 
-      - name: Install Windows Ansible collection
+      - name: Install Windows collection
         run: |
+          . .venv/bin/activate
           ansible-galaxy collection install ansible.windows
 
       - name: Check Ansible
         run: |
+          . .venv/bin/activate
           ansible --version
 
       - name: Check inventory
         run: |
-          ansible-inventory -i ansible/inventory.ini --graph
+          . .venv/bin/activate
+          ansible-inventory \
+            -i ansible/inventory.ini \
+            --graph
 
       - name: Test Windows connectivity
         run: |
-          ansible -i ansible/inventory.ini windows -m ansible.windows.win_ping
+          . .venv/bin/activate
+          ansible \
+            -i ansible/inventory.ini \
+            windows \
+            -m ansible.windows.win_ping
 
       - name: Run Ola Hallengren backup
         run: |
+          . .venv/bin/activate
           ansible-playbook \
             -i ansible/inventory.ini \
             ansible/ola-backup.yml
