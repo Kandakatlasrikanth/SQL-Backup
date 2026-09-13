@@ -8,23 +8,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install WinRM dependencies
+      # 2. Create Python virtual environment
+      - name: Create Python virtual environment
         run: |
-          python3 -m pip install --user pywinrm requests-ntlm
+          python3 -m venv .venv
 
+      # 3. Install Ansible and WinRM dependencies INSIDE venv
+      - name: Install Ansible and WinRM dependencies
+        run: |
+          . .venv/bin/activate
+          python -m pip install --upgrade pip
+          python -m pip install ansible pywinrm requests-ntlm
+
+      # 4. Install Ansible Windows collection
       - name: Install Windows collection
         run: |
           . .venv/bin/activate
           ansible-galaxy collection install ansible.windows
 
+      # 5. Check Ansible installation
       - name: Check Ansible
         run: |
           . .venv/bin/activate
           ansible --version
+          python -c "import winrm; print('pywinrm installed successfully')"
 
+      # 6. Check inventory
       - name: Check inventory
         run: |
           . .venv/bin/activate
@@ -32,6 +46,7 @@ jobs:
             -i ansible/inventory.ini \
             --graph
 
+      # 7. Test Windows connectivity
       - name: Test Windows connectivity
         run: |
           . .venv/bin/activate
@@ -40,6 +55,7 @@ jobs:
             windows \
             -m ansible.windows.win_ping
 
+      # 8. Run Ola Hallengren backup
       - name: Run Ola Hallengren backup
         run: |
           . .venv/bin/activate
