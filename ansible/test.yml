@@ -1,0 +1,23 @@
+- name : SQL Backup
+  hosts: windows
+  vars:
+    backup_path: '\\Sree\ansible'
+     
+  tasks :
+    - name: Run Ola Hallengren database backup
+      ansible.windows.win_shell: |
+        Import-Module SqlServer
+
+        Invoke-Sqlcmd `
+          -ServerInstance "localhost" `
+          -Database "master" `
+          -Query @"
+        EXECUTE dbo.DatabaseBackup
+            @Databases = 'USER_DATABASES',
+            @Directory = N'{{ backup_path }}',
+            @BackupType = 'FULL',
+            @Verify = 'Y',
+            @Checksum = 'Y',
+            @Compress = 'Y',
+            @CleanupTime = 24;
+        "@
