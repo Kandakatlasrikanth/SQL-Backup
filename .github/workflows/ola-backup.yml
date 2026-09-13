@@ -8,20 +8,15 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout
+
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Check Windows environment
+      - name: Check Windows user
         shell: powershell
         run: |
-          Write-Host "Windows user:"
           whoami
-
-          Write-Host "Current directory:"
           Get-Location
-
-          Write-Host "GitHub workspace:"
-          Write-Host "${{ github.workspace }}"
 
       - name: Check WSL
         shell: powershell
@@ -29,17 +24,16 @@ jobs:
           wsl --status
           wsl --list --verbose
 
-      - name: Check Ansible in WSL
+      - name: Check Ansible
         shell: powershell
         run: |
-          wsl bash -lc "whoami"
           wsl bash -lc "ansible --version"
 
-      - name: Check repository from WSL
+      - name: Check repository in WSL
         shell: powershell
         run: |
           $wslPath = wsl wslpath '${{ github.workspace }}'
-          Write-Host "WSL path: $wslPath"
+          Write-Host "WSL Path: $wslPath"
           wsl bash -lc "ls -la '$wslPath'"
           wsl bash -lc "ls -la '$wslPath/ansible'"
 
@@ -49,13 +43,13 @@ jobs:
           $wslPath = wsl wslpath '${{ github.workspace }}'
           wsl bash -lc "cd '$wslPath' && ansible-inventory -i ansible/inventory.ini --graph"
 
-      - name: Test Ansible connectivity
+      - name: Test Windows connectivity
         shell: powershell
         run: |
           $wslPath = wsl wslpath '${{ github.workspace }}'
           wsl bash -lc "cd '$wslPath' && ansible -i ansible/inventory.ini windows -m ansible.windows.win_ping"
 
-      - name: Run Ola backup
+      - name: Run Ola Hallengren backup
         shell: powershell
         run: |
           $wslPath = wsl wslpath '${{ github.workspace }}'
