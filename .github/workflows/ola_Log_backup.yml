@@ -1,9 +1,10 @@
 name: Ola Hallengren Backup
 on:
   workflow_dispatch:
-  
+  schedule:
+    - cron: '*/30 * * * *'  
 jobs:
-  ola-backup:
+  ola-LOG_backup:
     runs-on: self-hosted
     steps:
       - name: Checkout repository
@@ -16,4 +17,4 @@ jobs:
 
           Write-Host "Repository: $repo"
 
-          wsl bash -lc "cd '$repo' && ansible-playbook -i ansible/inventory.ini ansible/ola-Full_backup.yml"
+          wsl bash -lc "cd '$repo' && ansible-playbook -i ansible/inventory.ini ansible/ola-Log_backup.yml"
