@@ -12,23 +12,16 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Check Ansible
-        shell: bash
+        shell: powershell
         run: |
-          ansible --version
+          wsl ansible --version
 
       - name: Check inventory
-        shell: bash
+        shell: powershell
         run: |
-          ansible-inventory -i ansible/inventory.ini --graph
-
-      - name: Test Windows connectivity
-        shell: bash
-        run: |
-          ansible -i ansible/inventory.ini windows -m ansible.windows.win_ping
+          wsl bash -lc "cd /mnt/c/Users/ADMINISTRATOR/_work/SQL-Backup/SQL-Backup && ansible-inventory -i ansible/inventory.ini --graph"
 
       - name: Run Ola Hallengren backup
-        shell: bash
+        shell: powershell
         run: |
-          ansible-playbook \
-            -i ansible/inventory.ini \
-            ansible/test.yml
+          wsl bash -lc "cd /mnt/c/Users/ADMINISTRATOR/_work/SQL-Backup/SQL-Backup && ansible-playbook -i ansible/inventory.ini ansible/ola-backup.yml"
