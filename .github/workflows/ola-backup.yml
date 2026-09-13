@@ -11,12 +11,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Ansible and WinRM
+      - name: Install WinRM dependencies
         run: |
-          python3 -m venv .venv
-          . .venv/bin/activate
-          pip install --upgrade pip
-          pip install ansible pywinrm requests-ntlm
+          python3 -m pip install --user pywinrm requests-ntlm
 
       - name: Install Windows collection
         run: |
