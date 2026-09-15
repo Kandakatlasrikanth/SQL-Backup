@@ -1,0 +1,56 @@
+---
+- name: Ola Hallengren SQL Backup
+  hosts: windows
+  gather_facts: no
+  vars:
+    backup_type: "DIFF"
+  tasks:
+
+    - name: Run Ola Hallengren backup
+      ansible.windows.win_shell: |
+        $LogFile = "C:\SQLScript\Ola_Backup_Result.txt"
+
+        $StartTime = Get-Date
+
+        "========================================" | Out-File $LogFile
+        "OLA HALLENGREN BACKUP EXECUTION"       | Out-File $LogFile -Append
+        "========================================" | Out-File $LogFile -Append
+        "Server      : $env:COMPUTERNAME"       | Out-File $LogFile -Append
+        "Start Time  : $StartTime"              | Out-File $LogFile -Append
+        ""                                      | Out-File $LogFile -Append
+
+        try {
+
+            $Result = Invoke-Sqlcmd `
+                -ServerInstance "localhost" `
+                -Database "master" `
+                -Query `
+                "EXEC dbo.DatabaseBackup 
+                @Databases='USER_DATABASES', 
+                @Directory='C:\SQLBackups', 
+                @BackupType='{{ backup_type }}'" `
+                -ErrorAction Stop
+
+            $Result | Out-String | Out-File $LogFile -Append
+
+            "" | Out-File $LogFile -Append
+            "STATUS      : SUCCESS" | Out-File $LogFile -Append
+            "End Time    : $(Get-Date)" | Out-File $LogFile -Append
+
+            exit 0
+        }
+        catch {
+
+            "" | Out-File $LogFile -Append
+            "STATUS      : FAILED" | Out-File $LogFile -Append
+            "ERROR       : $($_.Exception.Message)" | Out-File $LogFile -Append
+            "End Time    : $(Get-Date)" | Out-File $LogFile -Append
+
+            exit 1
+        }
+
+      register: backup_result
+
+    - name: Display backup result
+      ansible.builtin.debug:
+        msg: "{{ backup_result.stdout }}"

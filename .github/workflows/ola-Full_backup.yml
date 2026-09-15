@@ -1,7 +1,19 @@
 name: Ola Hallengren FUll_Backup
 on:
   workflow_dispatch:
-  
+    inputs:
+      BackupType:
+        description: 'Enter the backup type (FULL, DIFF, LOG)'
+        required: true
+        type: choice
+        options:
+          - FULL
+          - DIFF
+          - LOG
+  schedule:
+    - cron: '30 20 * * 0'
+    - cron: '30 02 * * 1-6'
+    - cron: '30  * * * *'
 jobs:
   ola-backup:
     runs-on: self-hosted
@@ -12,6 +24,12 @@ jobs:
       - name: Run Ola Hallengren Backup
         shell: powershell
         run: |
+          switch (${{ github.event.schedule }}) {
+                 '30 20 * * 0' { $BackupType = "FULL" }
+                 '30 02 * * 1-6' { $BackupType = "DIFF" }
+                 '30  * * * *' { $BackupType = "LOG" }
+                 default { Write-Host "Unknown schedule: ${{ github.event.schedule }}"; exit 1 }
+             }
           $repo = wsl wslpath '${{ github.workspace }}'
 
           Write-Host "Repository: $repo"
