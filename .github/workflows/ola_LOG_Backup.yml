@@ -1,0 +1,30 @@
+name: Ola Hallengren FUll_Backup
+on:
+  workflow_dispatch:
+    inputs:
+      BackupType:
+        description: 'Enter the backup type (FULL, DIFF, LOG)'
+        required: true
+        type: choice
+        default: 'LOG'
+        options:
+          - FULL
+          - DIFF
+          - LOG
+
+jobs:
+  ola-backup:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Ola Hallengren Backup
+        shell: powershell
+        run: |
+        
+          $repo = wsl wslpath '${{ github.workspace }}'
+
+          Write-Host "Repository: $repo"
+
+          wsl bash -lc "cd '$repo' && ansible-playbook -i ansible/inventory.ini ansible/ola_backup.yml"
