@@ -6,14 +6,14 @@ on:
         description: 'Enter the backup type (FULL, DIFF, LOG)'
         required: true
         type: choice
-        default: 'LOG'
+        default: LOG
         options:
           - FULL
           - DIFF
           - LOG
 
 jobs:
-  ola-backup:
+  ola-LOG_backup:
     runs-on: self-hosted
     steps:
       - name: Checkout repository
@@ -22,6 +22,6 @@ jobs:
       - name: Run Ola Hallengren Backup
         shell: powershell
         run: |
-             $repo = wsl.exe -d Ubuntu -- wslpath '/mnt/c/actions-runner/_work/SQL-Backup/SQL-Backup'
-             Write-Host "Repository: $repo"
-             wsl.exe -d Ubuntu -- bash -lc "cd '$repo' && ansible-playbook -i ansible/inventory.ini ansible/ola_backup.yml"
+          $repo = wsl wslpath '${{ github.workspace }}'
+          Write-Host "Repository: $repo"
+          wsl bash -lc "cd '$repo' && ansible-playbook -i ansible/inventory.ini ansible/ola-Log_backup.yml"
