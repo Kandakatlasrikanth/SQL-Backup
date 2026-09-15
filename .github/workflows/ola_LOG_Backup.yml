@@ -22,9 +22,12 @@ jobs:
       - name: Run Ola Hallengren Backup
         shell: powershell
         run: |
-        
-          $repo = wsl wslpath '${{ github.workspace }}'
+          $windowsRepo = $env:GITHUB_WORKSPACE
 
-          Write-Host "Repository: $repo"
+          Write-Host "Windows Repository: $windowsRepo"
 
-          wsl bash -lc "cd '$repo' && ansible-playbook -i ansible/inventory.ini ansible/ola_backup.yml"
+          $repo = wsl.exe -d Ubuntu -- wslpath "$windowsRepo"
+
+          Write-Host "WSL Repository: $repo"
+
+          wsl.exe -d Ubuntu -- bash -lc "cd '$repo' && ansible-playbook -i ansible/inventory.ini ansible/ola_backup.yml"
