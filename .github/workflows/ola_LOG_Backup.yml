@@ -1,77 +1,20 @@
-name: Ola Hallengren Backup
-
+name: Ola Hallengren LOG_Backup
 on:
   workflow_dispatch:
-    inputs:
-      BackupType:
-        description: 'Enter the backup type (FULL, DIFF, LOG)'
-        required: true
-        type: choice
-        default: LOG
-        options:
-          - FULL
-          - DIFF
-          - LOG
-
+  schedule:
+    - cron: '*/30 * * * *'  
 jobs:
-  ola-backup:
-    runs-on: [self-hosted, Windows, X64]
-
+  ola-LOG_backup:
+    runs-on: self-hosted
     steps:
-
-      # Step 1 - Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2 - Check Windows and WSL
-      - name: Check WSL
-        shell: powershell
-        run: |
-          Write-Host "Running user:"
-          whoami
-
-          Write-Host ""
-          Write-Host "GitHub Workspace:"
-          Write-Host $env:GITHUB_WORKSPACE
-
-          Write-Host ""
-          Write-Host "WSL distributions:"
-          wsl.exe --list --verbose
-
-      # Step 3 - Run Ansible Ola Backup
       - name: Run Ola Hallengren Backup
         shell: powershell
         run: |
+          $repo = wsl wslpath '${{ github.workspace }}'
 
-          # GitHub Actions repository path on Windows
-          $windowsRepo = $env:GITHUB_WORKSPACE
+          Write-Host "Repository: $repo"
 
-          Write-Host "Windows Repository:"
-          Write-Host $windowsRepo
-
-          # Convert Windows path to WSL path
-          $repo = wsl.exe -d Ubuntu -- wslpath "$windowsRepo"
-
-          if ($LASTEXITCODE -ne 0) {
-              Write-Error "Failed to convert Windows path to WSL path."
-              exit 1
-          }
-
-          Write-Host "WSL Repository:"
-          Write-Host $repo
-
-          # Get backup type selected from GitHub Actions
-          $backupType = "${{ inputs.BackupType }}"
-
-          Write-Host "Backup Type:"
-          Write-Host $backupType
-
-          # Run Ansible inside Ubuntu WSL
-          wsl.exe -d Ubuntu -- bash -lc "cd '$repo' && ansible-playbook -i ansible/inventory.ini ansible/ola-backup.yml -e 'backup_type=$backupType'"
-
-          if ($LASTEXITCODE -ne 0) {
-              Write-Error "Ansible Ola backup failed."
-              exit 1
-          }
-
-          Write-Host "Ola Hallengren backup completed successfully."
+          wsl bash -lc "cd '$repo' && ansible-playbook -i ansible/inventory.ini ansible/ola-Log_backup.yml"
