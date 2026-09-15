@@ -22,6 +22,6 @@ jobs:
       - name: Run Ola Hallengren Backup
         shell: powershell
         run: |
-             $repo = wsl.exe -d Ubuntu -- wslpath 'C:\actions-runner\_work\SQL-Backup\SQL-Backup'
+             $repo = wsl.exe -d Ubuntu -- wslpath '/mnt/c/actions-runner/_work/SQL-Backup/SQL-Backup'
              Write-Host "Repository: $repo"
              wsl.exe -d Ubuntu -- bash -lc "cd '$repo' && ansible-playbook -i ansible/inventory.ini ansible/ola_backup.yml"
