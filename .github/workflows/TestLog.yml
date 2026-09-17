@@ -1,0 +1,38 @@
+name: Ola Log Backup without WSL
+
+on:
+  workflow_dispatch:
+
+jobs:
+  Ola_Log_Backup:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Ansible and WinRM dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible
+          python3 -m pip install --upgrade pip
+          python3 -m pip install pywinrm requests-ntlm
+
+      - name: Install Ansible Windows collection
+        run: |
+          ansible-galaxy collection install ansible.windows
+
+      - name: Test Windows connectivity
+        run: |
+          ansible windows \
+            -i ansible/inventory.ini \
+            -m ansible.windows.win_ping
+
+      - name: Run Ola Hallengren Log Backup
+        run: |
+          ansible-playbook \
+            -i ansible/inventory.ini \
+            ansible/ola-backup.yml \
+            -e "backup_type=LOG"
