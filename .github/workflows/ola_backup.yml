@@ -1,4 +1,5 @@
-name: Ola Hallengren FUll_Backup
+name: Ola Hallengren Backup
+
 on:
   workflow_dispatch:
     inputs:
@@ -10,27 +11,72 @@ on:
           - FULL
           - DIFF
           - LOG
+
   schedule:
-    - cron: '30 20 * * 0'
-    - cron: '30 02 * * 1-6'
-    - cron: '30  * * * *'
+    - cron: '30 20 * * 0'       # FULL
+    - cron: '30 02 * * 1-6'     # DIFF
+    - cron: '30 * * * *'        # LOG
+
 jobs:
   ola-backup:
+
     runs-on: self-hosted
+
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Run Ola Hallengren Backup
         shell: powershell
         run: |
-          switch ("${{ github.event.schedule }}") {
-                 '30 20 * * 0' { $BackupType = "FULL" }
-                 '30 02 * * 1-6' { $BackupType = "DIFF" }
-                 '30  * * * *' { $BackupType = "LOG" }
-                 default { Write-Host "Unknown schedule: ${{ github.event.schedule }}"; exit 1 }
-             }
+
+          # Determine Backup Type
+          if ("${{ github.event_name }}" -eq "schedule") {
+
+            switch ("${{ github.event.schedule }}") {
+
+              '30 20 * * 0' {
+                $BackupType = "FULL"
+              }
+
+              '30 02 * * 1-6' {
+                $BackupType = "DIFF"
+              }
+
+              '30 * * * *' {
+                $BackupType = "LOG"
+              }
+
+              default {
+                Write-Host "Unknown schedule: ${{ github.event.schedule }}"
+                exit 1
+              }
+            }
+
+          }
+          elseif ("${{ github.event_name }}" -eq "workflow_dispatch") {
+
+            $BackupType = "${{ github.event.inputs.BackupType }}"
+
+          }
+          else {
+
+            Write-Host "Unknown event: ${{ github.event_name }}"
+            exit 1
+          }
+
+          Write-Host "===================================="
+          Write-Host "Event       : ${{ github.event_name }}"
+          Write-Host "Backup Type : $BackupType"
+          Write-Host "===================================="
+
+          # Convert Windows repository path to WSL path
           $windowsRepo = $env:GITHUB_WORKSPACE
+
           $repo = wsl.exe -d Ubuntu -- wslpath "$windowsRepo"
+
           Write-Host "Repository: $repo"
-          wsl bash -lc "cd '$repo' && ansible-playbook -i ansible/inventory.ini ansible/ola_backup.yml"
+
+          # Run Ansible
+          wsl.exe -d Ubuntu -- bash -lc "cd '$repo' && ansible-playbook -i ansible/inventory.ini ansible/ola_backup.yml -e backup_type=$BackupType"
