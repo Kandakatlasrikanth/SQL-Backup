@@ -15,7 +15,7 @@ on:
   schedule:
     - cron: '30 20 * * 0'       # FULL
     - cron: '30 02 * * 1-6'     # DIFF
-    - cron: '30 * * * *'        # LOG
+    - cron: '*/30 * * * *'        # LOG
 
 jobs:
   ola-backup:
@@ -44,7 +44,7 @@ jobs:
                 $BackupType = "DIFF"
               }
 
-              '30 * * * *' {
+              '*/30 * * * *' {
                 $BackupType = "LOG"
               }
 
