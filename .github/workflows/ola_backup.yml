@@ -79,4 +79,4 @@ jobs:
           Write-Host "Repository: $repo"
 
           # Run Ansible
-          wsl.exe -d Ubuntu -- bash -lc "cd '$repo' && ansible-playbook -i ansible/inventory.ini ansible/ola_backup.yml -e backup_type=$BackupType"
+          wsl.exe -d Ubuntu -- bash -lc "cd '$repo' && ansible-playbook -i ansible/inventory.ini ansible/ola-backup.yml -e backup_type=$BackupType"
