@@ -17,4 +17,4 @@ jobs:
 
           Write-Host "Repository: $repo"
 
-          wsl bash -lc "cd '$repo' && ansible-playbook -i ansible/inventory.ini ansible/ola-Log_backup.yml"
+          wsl bash -lc "cd '$repo' && ansible-playbook -i ansible/inventory.ini ansible/ola-backup.yml"
