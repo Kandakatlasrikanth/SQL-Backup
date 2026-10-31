@@ -1,35 +1,56 @@
-name: Service status report
+name: Multiple jobs
+
 on:
- push:
-    branches:
-        - SREE
- workflow_dispatch:
+  push:
+    branches: [KANTH]
+  workflow_dispatch:
+
 jobs:
-    service-report:
-        runs-on: windows-latest
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
+  terraform-check:
+    name: Check Terraform
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: Terraform
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Run terraform init
-              run: terraform init -input=false
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
 
-            - name: Run terraform fmt
-              run: terraform fmt -check
-            
-            - name: Run terraform validate
-              run: terraform validate
+      - name: Initialize
+        run: terraform init -backend=false
 
-            - name: Run terraform plan
-              run: terraform plan -out=tfplan
+      - name: Format check
+        run: terraform fmt -check -recursive
 
-            - name: Run terraform apply
-              run: terraform apply -auto-approve tfplan
-           
-            - name: upload terraform output
-              uses: actions/upload-artifact@v4
-              with:
-                  name: service-report
-                  path: service.txt
+      - name: Validate
+        run: terraform validate
 
+  service-report:
+    name: Create service report
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
 
+      - name: Run PowerShell
+        shell: pwsh
+        run: |
+          Get-Service |
+            Select-Object -First 5 Name, Status |
+            Out-File -FilePath "$env:GITHUB_WORKSPACE\service.txt" -Encoding utf8
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: service-report
+          path: service.txt
+
+  after-checks:
+    name: Run after Terraform check
+    needs: terraform-check
+    runs-on: windows-latest
+    steps:
+      - run: Write-Output "Terraform validation passed"
+        shell: pwsh
