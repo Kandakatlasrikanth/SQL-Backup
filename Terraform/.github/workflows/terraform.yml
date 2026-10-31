@@ -1,0 +1,35 @@
+name: Service status report
+on:
+ push:
+    branches:
+        - SREE
+ workflow_dispatch:
+jobs:
+    service-report:
+        runs-on: windows-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Run terraform init
+              run: terraform init -input=false
+
+            - name: Run terraform fmt
+              run: terraform fmt -check
+            
+            - name: Run terraform validate
+              run: terraform validate
+
+            - name: Run terraform plan
+              run: terraform plan -out=tfplan
+
+            - name: Run terraform apply
+              run: terraform apply -auto-approve tfplan
+           
+            - name: upload terraform output
+              uses: actions/upload-artifact@v4
+              with:
+                  name: service-report
+                  path: service.txt
+
+
