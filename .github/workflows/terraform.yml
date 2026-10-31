@@ -11,8 +11,20 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v4
 
-            - name: Run terraform init
+            - name: Install Terraform
+              uses: hashicorp/setup-terraform@v3
+              with:
+                 terraform_version: "1.9.8"
+
+            - name: Check Terraform
+              run: terraform version
+
+            - name: Initialize Terraform
               run: terraform init
+              working-directory: ./Terraform
+
+            - name: Run terraform init
+              run: terraform init -input=false
 
             - name: Run terraform fmt
               run: terraform fmt -check
